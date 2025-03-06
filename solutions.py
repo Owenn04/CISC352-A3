@@ -15,6 +15,7 @@
 
 import util
 from util import raiseNotDefined
+from util import manhattanDistance # had to add this to solutions
 import random
 import busters
 
@@ -93,7 +94,20 @@ def getObservationProb(self, noisyDistance, pacmanPosition, ghostPosition, jailP
     Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
     """
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    # Special Case 1: The ghost is in jail :(
+    if ghostPosition == jailPosition:
+        return 1.0 if noisyDistance is None else 0.0
+    
+    # Special Case 2: The noisy distance is None (meaning the ghost is also in jail)
+    if noisyDistance is None: # if we recieve None but ghost is not in jail, then the probability is 0.0
+        return 0.0
+
+    # calculate the true manhattan distance between pacman and ghost
+    trueDistance = manhattanDistance(pacmanPosition, ghostPosition)
+
+    # get the probability of seeing noisyDistance given the true distance
+    return busters.getObservationProbability(noisyDistance, trueDistance)
+    # raiseNotDefined()
 
 
 
