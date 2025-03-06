@@ -40,9 +40,15 @@ def normalize(self):
     >>> empty
     {}
     """
-    "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    total = self.total() # calculate the sum of all values in the distribution
 
+    if total == 0: # if the total is 0, it means the distribution is either empty or all values are zero, so do nothing
+        return
+    
+    for key in self.keys(): # if the total isnt 0, iterate through each key-value pair in the distribution and for each value divide it by its total effectively scaling all values so they sum to 1 / normalizing it. 
+        self[key] = self[key] / total
+
+    # raiseNotDefined()
 def sample(self):
     """
     Draw a random sample from the distribution and return the key, weighted
@@ -65,9 +71,23 @@ def sample(self):
     0.0
     """
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    if not self:
+        return None
+    
+    total = self.total()
 
+    if total == 0:
+        return None
+    
+    rand_num = random.random() * total # generate a random fpoint number between 0 and total sum
 
+    cumulative = 0.0
+    for key, value in self.items(): # iterate through each key-value pair in the distribution and add the currentvalue to the culmatative probability.
+        cumulative += value
+        if rand_num < cumulative: # if the random number is less than to the cumulative probability, return the current key
+            return key # this ensures that keys with higher probabilities have a higher chance of being sampled. 
+    
+    # raiseNotDefined()
 def getObservationProb(self, noisyDistance, pacmanPosition, ghostPosition, jailPosition):
     """
     Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
