@@ -85,7 +85,7 @@ def sample(self):
     cumulative = 0.0
     for key, value in self.items(): # iterate through each key-value pair in the distribution and add the currentvalue to the culmatative probability.
         cumulative += value
-        if rand_num < cumulative: # if the random number is less than to the cumulative probability, return the current key
+        if rand_num <= cumulative: # if the random number is less than or equal to the cumulative probability, return the current key
             return key # this ensures that keys with higher probabilities have a higher chance of being sampled. 
     
     # raiseNotDefined()
@@ -125,11 +125,39 @@ def observeUpdate(self, observation, gameState):
     The update model is not entirely stationary: it may depend on Pacman's
     current position. However, this is not a problem, as Pacman's current
     position is known.
+    ------------------------------------------------------------------
+    The equation of the inference problem we are trying to solve is:
+    P(ghostPos | observation) ∝ P(observation | ghostPos) * P(ghostPos)
+    Where:
+    - P(ghostPos | observation) is our updated belief about the ghost position
+    - P(observation | ghostPos) is the probability of observing the given a ghost position
+    - P(ghostPos) is our prior belief about the ghost position
     """
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
-    self.beliefs.normalize()
+    pacmanPosition = gameState.getPacmanPosition()
+    jailPosition = self.getJailPosition()
 
+    # Case when observation is None, we know the ghost is in jail with probabilty 1
+    if observation is None:
+        for position in self.allPositions:
+            self.beliefs[position] = 1.0 if position == jailPosition else 0.0
+        return  
+    
+    # Regular Case where we update beliefs based on observation probabilities 
+    for ghostPosition in self.allPositions:
+        observationProb = self.getObservationProb(observation, pacmanPosition, ghostPosition, jailPosition)
+        self.beliefs[ghostPosition] = observationProb * self.beliefs[ghostPosition]
+
+    # Only normalize when there are non-zero beliefs
+    if self.beliefs.total() > 0:
+        self.beliefs.normalize()
+    else:
+        # If all beliefs become zero (happens in 1 case at move 8 (1,1)) we set the jail posisiton to probability 1.0
+        if observation is None:
+            self.beliefs[jailPosition] = 1.0
+    
+    self.beliefs.normalize()
+    # raiseNotDefined()
 
 def elapseTime(self, gameState):
     """
