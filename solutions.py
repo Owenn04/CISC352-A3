@@ -41,9 +41,9 @@ def normalize(self):
     >>> empty
     {}
     """
-    total = self.total() # calculate the sum of all values in the distribution
+    total = self.total() # calculate the sum of all values in the distribution. this represents the total 'weight' of the distribution before normalization
 
-    if total == 0: # if the total is 0, it means the distribution is either empty or all values are zero, so do nothing
+    if total == 0: # if the total is 0, it means the distribution is either empty or all values are zero, so do nothing as normalization isnt possible
         return
     
     for key in self.keys(): # if the total isnt 0, iterate through each key-value pair in the distribution and for each value divide it by its total effectively scaling all values so they sum to 1 / normalizing it. 
@@ -72,15 +72,17 @@ def sample(self):
     0.0
     """
     "*** YOUR CODE HERE ***"
+    # if the distribution is empty, return None as there is nothing to sample. 
     if not self:
         return None
     
     total = self.total()
 
+    # if all values are 0, return None as sampling is useless.
     if total == 0:
         return None
     
-    rand_num = random.random() * total # generate a random fpoint number between 0 and total sum
+    rand_num = random.random() * total # generate a random fpoint number between 0 and total sum. this number will be used to select a key
 
     cumulative = 0.0
     for key, value in self.items(): # iterate through each key-value pair in the distribution and add the currentvalue to the culmatative probability.
@@ -105,7 +107,7 @@ def getObservationProb(self, noisyDistance, pacmanPosition, ghostPosition, jailP
     # calculate the true manhattan distance between pacman and ghost
     trueDistance = manhattanDistance(pacmanPosition, ghostPosition)
 
-    # get the probability of seeing noisyDistance given the true distance
+    # get the probability of seeing noisyDistance given the true distance. this is the true distance pacman gets from his sensor but +- some error. 
     return busters.getObservationProbability(noisyDistance, trueDistance)
     # raiseNotDefined()
 
@@ -137,13 +139,14 @@ def observeUpdate(self, observation, gameState):
     pacmanPosition = gameState.getPacmanPosition()
     jailPosition = self.getJailPosition()
 
-    # Case when observation is None, we know the ghost is in jail with probabilty 1
+    # Case when observation is None, we know the ghost is in jail with probabilty 1 and the belief at all other positions to be 0.
     if observation is None:
         for position in self.allPositions:
             self.beliefs[position] = 1.0 if position == jailPosition else 0.0
         return  
     
-    # Regular Case where we update beliefs based on observation probabilities 
+    # Regular Case where we update beliefs based on observation probabilities. For each possible ghost position, calculate the probability of getting the current observation given
+    # the ghost is in that position. Then update the belief at that position using the equation of the inference problem.
     for ghostPosition in self.allPositions:
         observationProb = self.getObservationProb(observation, pacmanPosition, ghostPosition, jailPosition)
         self.beliefs[ghostPosition] = observationProb * self.beliefs[ghostPosition]
@@ -152,7 +155,7 @@ def observeUpdate(self, observation, gameState):
     if self.beliefs.total() > 0:
         self.beliefs.normalize()
     else:
-        # If all beliefs become zero (happens in 1 case at move 8 (1,1)) we set the jail posisiton to probability 1.0
+        # If all beliefs become zero (happens in 1 case at move 8 (1,1)) we set the jail posisiton to probability 1.0 as a fallback so that the beliefs remain valid
         if observation is None:
             self.beliefs[jailPosition] = 1.0
     
