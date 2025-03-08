@@ -170,6 +170,29 @@ def elapseTime(self, gameState):
     The transition model is not entirely stationary: it may depend on
     Pacman's current position. However, this is not a problem, as Pacman's
     current position is known.
+
     """
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    #raiseNotDefined()
+    
+    pacmanPos = gameState.getPacmanPosition()
+    newDict = {}
+
+    # check pos distribution for every position
+    for belief in self.beliefs:
+        # new position distribution given old position
+        newPosDist = self.getPositionDistribution(gameState, belief)
+
+        # calculate + sum possibilities
+        for pos in newPosDist:
+            posProb = newPosDist[pos] * self.beliefs[belief]
+
+            if pos in newDict.keys():
+                newDict[pos] += posProb
+            else:
+                newDict[pos] = posProb
+    
+    # set beliefs to predicted values
+    self.beliefs = newDict
+    
+    
