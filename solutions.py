@@ -192,7 +192,9 @@ def elapseTime(self, gameState):
             else:
                 newDict[pos] = posProb
     
-    # set beliefs to predicted values
-    self.beliefs = newDict
+    # update beliefs
+    for belief in self.beliefs:
+        self.beliefs[belief] = 0.0
     
-    
+    for pos in newDict:
+        self.beliefs[pos] += newDict[pos]
